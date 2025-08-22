@@ -14,7 +14,6 @@ from datetime import datetime
 
 from loguru import logger
 
-from ..api.claude_client import ClaudeClient, ClaudeRequest, ClaudeResponse
 from ..config.settings import AgentConfig
 
 
@@ -78,12 +77,10 @@ class BaseAgent(ABC):
     def __init__(
         self,
         agent_id: Optional[str] = None,
-        agent_type: Optional[str] = None,
-        claude_client: Optional[ClaudeClient] = None
+        agent_type: Optional[str] = None
     ):
         self.agent_id = agent_id or f"{self.__class__.__name__}_{uuid.uuid4().hex[:8]}"
         self.agent_type = agent_type or self.__class__.__name__.lower().replace("agent", "")
-        self.claude_client = claude_client or ClaudeClient()
         
         # Agent状态
         self.status = AgentStatus.IDLE
@@ -117,6 +114,44 @@ class BaseAgent(ABC):
     async def _process_task(self, task: AgentTask) -> AgentResult:
         """处理具体任务（子类实现）"""
         pass
+    
+    async def process_task(self, task: AgentTask) -> AgentResult:
+        """公开的任务处理接口"""
+        try:
+            self.status = AgentStatus.WORKING
+            self.current_task = task
+            
+            logger.info(f"Agent {self.agent_id} started processing task {task.task_id}")
+            
+            # 调用子类实现的处理方法
+            result = await self._process_task(task)
+            
+            # 先将结果添加到历史记录，再更新统计
+            self.results_history.append(result)
+            self._update_statistics(result)
+            
+            self.status = AgentStatus.COMPLETED
+            logger.info(f"Agent {self.agent_id} completed task {task.task_id}")
+            
+            return result
+            
+        except Exception as e:
+            self.status = AgentStatus.ERROR
+            error_result = AgentResult(
+                task_id=task.task_id,
+                agent_id=self.agent_id,
+                result_type="error",
+                output_data={},
+                success=False,
+                error_message=str(e)
+            )
+            
+            logger.error(f"Agent {self.agent_id} failed to process task {task.task_id}: {str(e)}")
+            return error_result
+            
+        finally:
+            self.current_task = None
+            self.status = AgentStatus.IDLE
     
     async def add_task(self, task: AgentTask) -> bool:
         """添加任务到队列"""
@@ -250,36 +285,13 @@ class BaseAgent(ABC):
         if quality_scores:
             self.average_quality_score = sum(quality_scores) / len(quality_scores)
     
-    async def send_claude_request(
-        self,
-        messages: List[Dict[str, str]],
-        system: Optional[str] = None,
-        **kwargs
-    ) -> ClaudeResponse:
-        """发送Claude请求"""
-        request = ClaudeRequest(
-            messages=messages,
-            system=system or self.system_prompt,
-            **kwargs
-        )
-        
-        return await self.claude_client.send_message(request, self.agent_type)
+    # Claude特定方法暂时注释，专家组使用multi_ai_client
+    # async def send_claude_request(self, messages, system=None, **kwargs):
+    #     pass
     
-    async def analyze_input(self, input_data: Dict[str, Any]) -> Dict[str, Any]:
-        """分析输入数据"""
-        messages = [
-            {
-                "role": "user",
-                "content": f"Please analyze the following input data for {self.agent_type} processing:\n\n{json.dumps(input_data, indent=2)}"
-            }
-        ]
-        
-        response = await self.send_claude_request(messages)
-        
-        try:
-            return json.loads(response.content)
-        except json.JSONDecodeError:
-            return {"analysis": response.content, "structured": False}
+    # analyze_input方法暂时注释，专家组直接使用multi_ai_client
+    # async def analyze_input(self, input_data: Dict[str, Any]) -> Dict[str, Any]:
+    #     pass
     
     def get_status(self) -> Dict[str, Any]:
         """获取Agent状态"""

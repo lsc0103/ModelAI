@@ -6,7 +6,8 @@ ModelAI 核心配置系统
 import os
 from pathlib import Path
 from typing import Optional, Dict, Any
-from pydantic import BaseSettings, Field
+from pydantic_settings import BaseSettings
+from pydantic import Field
 from enum import Enum
 
 
@@ -55,6 +56,18 @@ class Settings(BaseSettings):
     claude_max_tokens: int = 4096
     claude_temperature: float = 0.7
     claude_timeout: int = 60
+    
+    # OpenAI API 设置
+    openai_api_key: Optional[str] = Field(None, env="OPENAI_API_KEY")
+    openai_api_url: str = "https://api.openai.com/v1"
+    openai_model: str = "gpt-4o-mini"
+    openai_max_tokens: int = 4096
+    openai_temperature: float = 0.7
+    openai_timeout: int = 60
+    
+    # AI服务优先级配置
+    primary_ai_service: str = "openai"  # "openai" 或 "claude"
+    fallback_ai_service: str = "claude"  # 主服务失败时的备选
     
     # API限制和控制
     max_concurrent_requests: int = 5
