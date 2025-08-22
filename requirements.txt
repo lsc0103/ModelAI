@@ -1,0 +1,61 @@
+# Core Framework
+python>=3.9
+
+# AI and ML
+torch>=2.0.0
+torchvision>=0.15.0
+transformers>=4.30.0
+anthropic>=0.8.0
+openai>=1.0.0
+pillow>=9.5.0
+opencv-python>=4.7.0
+
+# 3D Processing
+open3d>=0.17.0
+trimesh>=3.21.0
+pymeshlab>=2022.2
+numpy>=1.24.0
+scipy>=1.10.0
+
+# Desktop UI (Modern)
+PyQt6>=6.5.0
+PySide6>=6.5.0
+pyqtgraph>=0.13.0
+
+# 3D Visualization
+vtk>=9.2.0
+pyvista>=0.42.0
+
+# Async and Networking
+aiohttp>=3.8.0
+asyncio-throttle>=1.0.0
+httpx>=0.24.0
+
+# File Processing
+PyPDF2>=3.0.0
+python-docx>=0.8.11
+openpyxl>=3.1.0
+
+# Data Processing
+pandas>=2.0.0
+matplotlib>=3.7.0
+seaborn>=0.12.0
+
+# Configuration and Logging
+pydantic>=2.0.0
+python-dotenv>=1.0.0
+loguru>=0.7.0
+
+# Development Tools
+pytest>=7.4.0
+black>=23.3.0
+isort>=5.12.0
+mypy>=1.4.0
+
+# Unity Integration
+FBX-SDK
+pygltflib>=1.15.0
+
+# Performance
+psutil>=5.9.0
+memory-profiler>=0.60.0
