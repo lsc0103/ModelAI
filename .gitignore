@@ -29,6 +29,12 @@ ENV/
 .env
 .env.local
 
+# API Keys and Secrets
+*Keys.txt
+*API*.txt
+*key*.txt
+*.key
+
 # IDE
 .vscode/
 .idea/
